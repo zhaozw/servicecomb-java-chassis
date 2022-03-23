@@ -17,6 +17,7 @@
 
 package org.apache.servicecomb.config.kie.client;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,10 +31,12 @@ import org.apache.servicecomb.config.kie.client.exception.OperationException;
 import org.apache.servicecomb.config.kie.client.model.ConfigConstants;
 import org.apache.servicecomb.config.kie.client.model.ConfigurationsRequest;
 import org.apache.servicecomb.config.kie.client.model.ConfigurationsResponse;
+import org.apache.servicecomb.config.kie.client.model.KVCreateBody;
 import org.apache.servicecomb.config.kie.client.model.KVDoc;
 import org.apache.servicecomb.config.kie.client.model.KVResponse;
 import org.apache.servicecomb.config.kie.client.model.KieAddressManager;
 import org.apache.servicecomb.config.kie.client.model.KieConfiguration;
+import org.apache.servicecomb.config.kie.client.model.LabelType;
 import org.apache.servicecomb.config.kie.client.model.ValueType;
 import org.apache.servicecomb.http.client.common.HttpRequest;
 import org.apache.servicecomb.http.client.common.HttpResponse;
@@ -47,6 +50,12 @@ import org.springframework.core.io.ByteArrayResource;
 public class KieClient implements KieConfigOperation {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KieClient.class);
+
+  private static final String KEY_APP = "app";
+
+  private static final String KEY_ENVIRONMENT = "environment";
+
+  private static final String KEY_SERVICE = "service";
 
   protected HttpTransport httpTransport;
 
@@ -102,6 +111,84 @@ public class KieClient implements KieConfigOperation {
       LOGGER.error("query configuration from {} failed, message={}", url, e.getMessage());
       throw new OperationException("read response failed. ", e);
     }
+  }
+
+  @Override
+  public boolean createConfiguration(String key, String value, LabelType labelType) {
+
+    String address = addressManager.address();
+    String url = buildCommonUrl(address);
+    try {
+      HttpRequest httpRequest = new HttpRequest(url, null, buildCreateBody(key,value,labelType), HttpRequest.POST);
+      return sendRequest(address, httpRequest);
+    } catch (Exception e) {
+      LOGGER.error("create configuration from {} failed, message={}", url, e.getMessage());
+      throw new OperationException("read response failed. ", e);
+    }
+  }
+
+  @Override
+  public boolean updateConfiguration(String key, String value) {
+
+    String address = addressManager.address();
+    String url = buildCommonUrl(address)+"/"+key;
+    try {
+
+      HttpRequest httpRequest = new HttpRequest(url, null, buildUpdateBody(key,value), HttpRequest.PUT);
+      return sendRequest(address, httpRequest);
+    } catch (Exception e) {
+      LOGGER.error("update configuration from {} failed, message={}", url, e.getMessage());
+      throw new OperationException("read response failed. ", e);
+    }
+  }
+
+  private boolean sendRequest(String address, HttpRequest httpRequest) throws IOException {
+    HttpResponse httpResponse = httpTransport.doRequest(httpRequest);
+    if (httpResponse.getStatusCode() == HttpStatus.SC_OK) {
+      addressManager.recordSuccessState(address);
+      return true;
+    }
+    addressManager.recordFailState(address);
+    throw new OperationException(
+            "read response failed. status:" + httpResponse.getStatusCode() + "; message:" +
+                    httpResponse.getMessage() + "; content:" + httpResponse.getContent());
+  }
+
+  private String buildCommonUrl(String currentAddress) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(currentAddress);
+    sb.append("/");
+    sb.append(DEFAULT_KIE_API_VERSION);
+    sb.append("/");
+    sb.append(kieConfiguration.getProject());
+    sb.append("/kie/kv");
+    return sb.toString();
+  }
+
+  private String buildCreateBody(String key, String value, LabelType labelType) throws IOException {
+    KVCreateBody body = new KVCreateBody();
+    body.setKey(key);
+    body.setValue(value);
+    Map<String, String> labels = new HashMap<String, String>();
+    if(labelType==LabelType.APP){
+      labels.put(KEY_APP, kieConfiguration.getAppName());
+      labels.put(KEY_ENVIRONMENT, kieConfiguration.getEnvironment());
+    }else if(labelType==LabelType.CUSTOM){
+      labels.put(kieConfiguration.getCustomLabel(),kieConfiguration.getCustomLabel());
+    }else if(labelType==LabelType.SERVICE){
+      labels.put(KEY_APP, kieConfiguration.getAppName());
+      labels.put(KEY_ENVIRONMENT, kieConfiguration.getEnvironment());
+      labels.put(KEY_SERVICE, kieConfiguration.getServiceName());
+    }
+    body.setLabels(labels);
+    return HttpUtils.serialize(body);
+  }
+
+  private String buildUpdateBody(String key, String value) throws IOException {
+    KVCreateBody body = new KVCreateBody();
+    body.setKey(key);
+    body.setValue(value);
+    return HttpUtils.serialize(body);
   }
 
   private String buildUrl(ConfigurationsRequest request, String currentAddress) {

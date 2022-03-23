@@ -20,6 +20,7 @@ package org.apache.servicecomb.config.kie.client;
 import org.apache.servicecomb.config.kie.client.exception.OperationException;
 import org.apache.servicecomb.config.kie.client.model.ConfigurationsRequest;
 import org.apache.servicecomb.config.kie.client.model.ConfigurationsResponse;
+import org.apache.servicecomb.config.kie.client.model.LabelType;
 
 //此处支持配置中心扩展
 public interface KieConfigOperation {
@@ -30,4 +31,6 @@ public interface KieConfigOperation {
    *  @throws OperationException If some problems happened to contact service center or non http 200 returned.
    */
   ConfigurationsResponse queryConfigurations(ConfigurationsRequest request);
+  boolean createConfiguration(String key,String value, LabelType labelType);
+  boolean updateConfiguration(String key,String value);
 }
