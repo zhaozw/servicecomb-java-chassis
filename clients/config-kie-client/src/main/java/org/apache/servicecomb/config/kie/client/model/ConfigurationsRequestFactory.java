@@ -53,6 +53,7 @@ public class ConfigurationsRequestFactory {
   private static ConfigurationsRequest createAppConfigurationsRequest(KieConfiguration configuration) {
     return new ConfigurationsRequest()
         .setOrder(APP_ORDER)
+        .setLabelType(LabelType.APP)
         .setWithExact(true)
         .setLabelsQuery(buildLabelQuery(buildLabelQueryItem(KEY_APP, configuration.getAppName()),
             buildLabelQueryItem(KEY_ENVIRONMENT, configuration.getEnvironment())));
@@ -61,6 +62,7 @@ public class ConfigurationsRequestFactory {
   private static ConfigurationsRequest createServiceConfigurationsRequest(KieConfiguration configuration) {
     return new ConfigurationsRequest()
         .setOrder(SERVICE_ORDER)
+        .setLabelType(LabelType.SERVICE)
         .setWithExact(true)
         .setLabelsQuery(buildLabelQuery(buildLabelQueryItem(KEY_APP, configuration.getAppName()),
             buildLabelQueryItem(KEY_SERVICE, configuration.getServiceName()),
@@ -70,6 +72,7 @@ public class ConfigurationsRequestFactory {
   private static ConfigurationsRequest createCustomConfigurationsRequest(KieConfiguration configuration) {
     return new ConfigurationsRequest()
         .setOrder(CUSTOM_ORDER)
+        .setLabelType(LabelType.CUSTOM)
         .setWithExact(false)
         .setLabelsQuery(
             buildLabelQuery(buildLabelQueryItem(configuration.getCustomLabel(), configuration.getCustomLabelValue())));

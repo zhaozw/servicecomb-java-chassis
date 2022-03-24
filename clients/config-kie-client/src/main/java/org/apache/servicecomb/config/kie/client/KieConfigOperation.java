@@ -31,6 +31,8 @@ public interface KieConfigOperation {
    *  @throws OperationException If some problems happened to contact service center or non http 200 returned.
    */
   ConfigurationsResponse queryConfigurations(ConfigurationsRequest request);
-  boolean createConfiguration(String key,String value, LabelType labelType);
-  boolean updateConfiguration(String key,String value);
+
+  boolean createConfiguration(String key, String value, LabelType labelType);
+
+  boolean updateConfiguration(String key, String value, LabelType labelType);
 }

@@ -65,6 +65,8 @@ public class KieClient implements KieConfigOperation {
 
   private final KieConfiguration kieConfiguration;
 
+  private final Map<LabelType, Map<String, KVDoc>> kvMap = new HashMap<>();//store KVDoc or only id???
+
   public static final String DEFAULT_KIE_API_VERSION = "v1";
 
   public KieClient(KieAddressManager addressManager, HttpTransport httpTransport, KieConfiguration kieConfiguration) {
@@ -88,6 +90,10 @@ public class KieClient implements KieConfigOperation {
       if (httpResponse.getStatusCode() == HttpStatus.SC_OK) {
         revision = httpResponse.getHeader("X-Kie-Revision");
         KVResponse allConfigList = HttpUtils.deserialize(httpResponse.getContent(), KVResponse.class);
+        Map<String, KVDoc> map = kvMap.computeIfAbsent(request.getLabelType(), k -> new HashMap<>(16));
+        for (KVDoc doc : allConfigList.getData()) {
+          map.put(doc.getKey(), doc);
+        }
         Map<String, Object> configurations = getConfigByLabel(allConfigList);
         configurationsResponse.setConfigurations(configurations);
         configurationsResponse.setChanged(true);
@@ -119,7 +125,7 @@ public class KieClient implements KieConfigOperation {
     String address = addressManager.address();
     String url = buildCommonUrl(address);
     try {
-      HttpRequest httpRequest = new HttpRequest(url, null, buildCreateBody(key,value,labelType), HttpRequest.POST);
+      HttpRequest httpRequest = new HttpRequest(url, null, buildCreateBody(key, value, labelType), HttpRequest.POST);
       return sendRequest(address, httpRequest);
     } catch (Exception e) {
       LOGGER.error("create configuration from {} failed, message={}", url, e.getMessage());
@@ -128,16 +134,17 @@ public class KieClient implements KieConfigOperation {
   }
 
   @Override
-  public boolean updateConfiguration(String key, String value) {
+  public boolean updateConfiguration(String key, String value, LabelType labelType) {
 
     String address = addressManager.address();
-    String url = buildCommonUrl(address)+"/"+key;
+    String url = buildCommonUrl(address) + "/";
     try {
-
-      HttpRequest httpRequest = new HttpRequest(url, null, buildUpdateBody(key,value), HttpRequest.PUT);
+      String id = kvMap.get(labelType).get(key).getId();
+      url += id;
+      HttpRequest httpRequest = new HttpRequest(url, null, buildUpdateBody(key, value), HttpRequest.PUT);
       return sendRequest(address, httpRequest);
     } catch (Exception e) {
-      LOGGER.error("update configuration from {} failed, message={}", url, e.getMessage());
+      LOGGER.error("update configuration key {} from {} failed, message={}", key, url, e.getMessage());
       throw new OperationException("read response failed. ", e);
     }
   }
@@ -150,8 +157,8 @@ public class KieClient implements KieConfigOperation {
     }
     addressManager.recordFailState(address);
     throw new OperationException(
-            "read response failed. status:" + httpResponse.getStatusCode() + "; message:" +
-                    httpResponse.getMessage() + "; content:" + httpResponse.getContent());
+        "read response failed. status:" + httpResponse.getStatusCode() + "; message:" +
+            httpResponse.getMessage() + "; content:" + httpResponse.getContent());
   }
 
   private String buildCommonUrl(String currentAddress) {
@@ -170,12 +177,12 @@ public class KieClient implements KieConfigOperation {
     body.setKey(key);
     body.setValue(value);
     Map<String, String> labels = new HashMap<String, String>();
-    if(labelType==LabelType.APP){
+    if (labelType == LabelType.APP) {
       labels.put(KEY_APP, kieConfiguration.getAppName());
       labels.put(KEY_ENVIRONMENT, kieConfiguration.getEnvironment());
-    }else if(labelType==LabelType.CUSTOM){
-      labels.put(kieConfiguration.getCustomLabel(),kieConfiguration.getCustomLabel());
-    }else if(labelType==LabelType.SERVICE){
+    } else if (labelType == LabelType.CUSTOM) {
+      labels.put(kieConfiguration.getCustomLabel(), kieConfiguration.getCustomLabel());
+    } else if (labelType == LabelType.SERVICE) {
       labels.put(KEY_APP, kieConfiguration.getAppName());
       labels.put(KEY_ENVIRONMENT, kieConfiguration.getEnvironment());
       labels.put(KEY_SERVICE, kieConfiguration.getServiceName());
