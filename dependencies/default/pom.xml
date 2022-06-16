@@ -64,8 +64,8 @@
     <javax-inject.version>1</javax-inject.version>
     <javax-resource.version>1.5</javax-resource.version>
     <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version>
-    <jersey.version>2.35</jersey.version>
-    <jmockit.version>1.30</jmockit.version>
+    <jersey.version>2.36</jersey.version>
+    <jmockit.version>1.31</jmockit.version>
     <junit.version>4.13.2</junit.version>
     <junit5.version>5.8.2</junit5.version>
     <log4j.version>1.2.17</log4j.version>
@@ -75,9 +75,9 @@
     <mock-server.version>5.13.2</mock-server.version>
     <netflix-commons.version>0.3.0</netflix-commons.version>
     <netty.version>4.1.77.Final</netty.version>
-    <okhttp3.version>4.9.3</okhttp3.version>
+    <okhttp3.version>4.10.0</okhttp3.version>
     <powermock.version>2.0.9</powermock.version>
-    <maven-model.version>3.8.5</maven-model.version>
+    <maven-model.version>3.8.6</maven-model.version>
     <micrometer.version>1.9.0</micrometer.version>
     <nacos-client.version>2.1.0</nacos-client.version>
     <prometheus.version>0.15.0</prometheus.version>
@@ -94,11 +94,10 @@
     <slf4j.version>1.7.36</slf4j.version>
     <snakeyaml.version>1.30</snakeyaml.version>
     <spectator.version>1.3.5</spectator.version>
-    <spring.version>5.3.20</spring.version>
+    <spring.version>5.3.21</spring.version>
     <spring-boot.version>2.6.7</spring-boot.version>
     <swagger.version>1.6.6</swagger.version>
     <swagger2markup.version>1.3.3</swagger2markup.version>
-    <tcnetty.version>2.0.53.Final</tcnetty.version>
     <vertx.version>4.2.7</vertx.version>
     <zipkin.version>2.23.16</zipkin.version>
     <zipkin-reporter.version>2.16.3</zipkin-reporter.version>
@@ -365,11 +364,6 @@
         <scope>import</scope>
         <version>${netty.version}</version>
         <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-tcnative-boringssl-static</artifactId>
-        <version>${tcnetty.version}</version>
       </dependency>
 
       <dependency>
