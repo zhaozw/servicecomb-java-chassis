@@ -33,6 +33,8 @@ public class ConfigurationsRequest implements Comparable<ConfigurationsRequest> 
 
   private Map<String, Object> lastRawData = new HashMap<>();
 
+  private LabelType labelType;
+
   public int getOrder() {
     return order;
   }
@@ -75,6 +77,15 @@ public class ConfigurationsRequest implements Comparable<ConfigurationsRequest> 
 
   public ConfigurationsRequest setLastRawData(Map<String, Object> lastRawData) {
     this.lastRawData = lastRawData;
+    return this;
+  }
+
+  public LabelType getLabelType() {
+    return labelType;
+  }
+
+  public ConfigurationsRequest setLabelType(LabelType labelType) {
+    this.labelType = labelType;
     return this;
   }
 
